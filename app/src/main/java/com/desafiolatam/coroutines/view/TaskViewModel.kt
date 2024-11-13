@@ -10,21 +10,31 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import repository.TaskRepository
 import javax.inject.Inject
 
-@HiltViewModel
-class TaskViewModel @Inject constructor(
-    private val repository: TaskRepositoryImp
-) : ViewModel() {
 
-    private val _data: MutableStateFlow<List<TaskEntity>> = MutableStateFlow(emptyList())
-    val taskListStateFlow: StateFlow<List<TaskEntity>> = _data.asStateFlow()
+class TaskViewModel @Inject constructor(private val repository: TaskRepository) : ViewModel() {
 
-    init {
+    val tasks: Flow<List<TaskEntity>> = repository.getTasks()
+
+    fun addTask(task: TaskEntity) {
         viewModelScope.launch {
-            repository.getTasks().collectLatest {
-                _data.value = it
-            }
+            repository.addTask(task)
+        }
+    }
+
+    fun deleteTask(task: TaskEntity) {
+        viewModelScope.launch {
+            repository.deleteTask(task)
+        }
+    }
+
+    fun completeTask(task: TaskEntity, isCompleted: Boolean) {
+        viewModelScope.launch {
+            repository.isTaskCompleted(task, isCompleted)
         }
     }
 }
